@@ -1,5 +1,6 @@
 package com.example.potholedetector
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,9 +30,17 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.potholedetector.sampledata.LoginRequest
+import com.example.potholedetector.sampledata.SignUpResponse
 
 @Composable
-fun LoginScreen(navController: NavController){
+fun LoginScreen(navController: NavController, viewModel: LoginViewModel = androidx.lifecycle.viewmodel.compose.viewModel()){
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    val isLoading = viewModel.isLoading // Directly observe from ViewModel
+    val errorMessage = viewModel.errorMessage
+    var LoginState = viewModel.LoginState
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -73,8 +82,7 @@ fun LoginScreen(navController: NavController){
         Spacer(modifier = Modifier.height(24.dp))
 
         // Input Fields
-        var email by remember { mutableStateOf("") }
-        var password by remember { mutableStateOf("") }
+
         CustomTextField(label = "Email", value = email , onValueChange = {newemail -> email =
             newemail})
         CustomTextField(
@@ -88,16 +96,23 @@ fun LoginScreen(navController: NavController){
         Spacer(modifier = Modifier.height(16.dp))
 
         // Sign Up Button
-        Button(
-            onClick = { navController.navigate("cam") },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(Color.Blue)
-        ) {
-            Text(
-                text = "Login",
-                color = Color.White,
-                style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            )
+        if(isLoading){
+            Text(text = "Logging In...", color = Color.Gray)
+        }else {
+            Button(
+                onClick = {
+                    val request = LoginRequest(email,password)
+                    viewModel.loginUser(request)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(Color.Blue)
+            ) {
+                Text(
+                    text = "Login",
+                    color = Color.White,
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -108,6 +123,22 @@ fun LoginScreen(navController: NavController){
                 text = "Do not have a account? SignUp here",
                 color = Color.Gray
             )
+        }
+        LoginState?.let {
+            Log.d("from screen", it.message)
+            if (it.message =="Sign-in successful") {
+                Text(text = "User ${it.message}", color = Color.Green)
+                Log.d("token", getToken())
+                navController.navigate("cam")
+            }
+            else {
+                Log.d("registered error", "registered error")
+                Text(text = "Error: ${it.message}", color = Color.Red)
+            }
+        }
+        errorMessage?.let {
+            Text(text = "Invalid Email or Password", color = Color.Red)
+            Log.d("error","error")
         }
     }
 }

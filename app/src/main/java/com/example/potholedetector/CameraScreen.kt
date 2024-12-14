@@ -23,8 +23,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.BottomAppBar
@@ -63,7 +65,6 @@ import com.google.android.gms.location.LocationServices
 fun CameraScreen(navController: NavController) {
     val context = LocalContext.current
 
-    // State for image URI or Bitmap
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var bitmapImage by remember { mutableStateOf<Bitmap?>(null) }
     val locationState = remember { mutableStateOf<String?>(null) }
@@ -100,26 +101,19 @@ fun CameraScreen(navController: NavController) {
                 containerColor = Color.White,
                 tonalElevation = 4.dp,
             ) {
-                // Icon 1
-                IconButton(onClick = { /* Handle click */ }) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Dashboard",
-                        tint = Color.Blue
-                    )
-                }
                 Spacer(Modifier.weight(0.5f))
-                // Icon 2
-                IconButton(onClick = { /* Handle click */ }) {
+
+                IconButton(onClick = { /* Handle click */ },) {
                     Icon(
-                        imageVector = Icons.Default.AddCircle,
+                        imageVector = Icons.Default.Info,
                         contentDescription = "Group",
-                        tint = Color.Red
+                        tint = Color(66, 135, 245),
+                        modifier = Modifier.size(50.dp)
                     )
                 }
 
-                // Center Icon
-                Spacer(Modifier.weight(1f)) // Spacer to push icons to the sides
+
+                Spacer(Modifier.weight(1f))
                 FloatingActionButton(
                     onClick = {
                         val hasPermission = ContextCompat.checkSelfPermission(
@@ -140,30 +134,25 @@ fun CameraScreen(navController: NavController) {
 
                 ) {
                     Image(
-                        painter = painterResource(id = R.drawable.cam), // Replace with your drawable resource
+                        painter = painterResource(id = R.drawable.cam),
                         contentDescription = "Logo",
                         contentScale = ContentScale.Fit,
                     )
                 }
                 Spacer(Modifier.weight(1f))
 
-                // Icon 3
+
                 IconButton(onClick = { /* Handle click */ }) {
                     Icon(
-                        imageVector = Icons.Default.MoreVert,
+                        imageVector = Icons.Default.AccountCircle,
                         contentDescription = "Assignment",
-                        tint = Color.Gray
+                        tint = Color(66, 135, 245),
+                        modifier = Modifier.size(70.dp)
                     )
                 }
                 Spacer(Modifier.weight(0.5f))
-                // Icon 4
-                IconButton(onClick = { /* Handle click */ }) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Profile",
-                        tint = Color.Gray
-                    )
-                }
+
+
             }
         },
         modifier = Modifier.background(Color.White)
@@ -212,7 +201,7 @@ fun CameraScreen(navController: NavController) {
             Spacer(modifier = Modifier.size(30.dp))
             if(locBol && bitmapImage!=null) {
                 locationState.value?.let { placeName ->
-                    Text("PLACE:  $placeName",
+                    Text("LOCATION:  $placeName",
                         modifier = Modifier.padding(30.dp))
                 }
             }
@@ -243,7 +232,7 @@ fun GetLocation(locationState:MutableState<String?>) {
                         val geocoder = Geocoder(context)
                         val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
                         if (addresses != null && addresses.isNotEmpty()) {
-                            locationState.value = addresses[0].getAddressLine(0) // Full address
+                            locationState.value = addresses[0].getAddressLine(0)
                         } else {
                             locationState.value = "Unable to fetch address"
                         }
