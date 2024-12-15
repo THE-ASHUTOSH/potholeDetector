@@ -1,6 +1,7 @@
 package com.example.potholedetector
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -32,15 +35,20 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.potholedetector.sampledata.LoginRequest
 import com.example.potholedetector.sampledata.SignUpResponse
+import kotlinx.coroutines.delay
 
+var buttonClicked : Boolean = false
 @Composable
 fun LoginScreen(navController: NavController, viewModel: LoginViewModel = androidx.lifecycle.viewmodel.compose.viewModel()){
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    val isLoading = viewModel.isLoading // Directly observe from ViewModel
-    val errorMessage = viewModel.errorMessage
-    var LoginState = viewModel.LoginState
+    val isLoading = viewModel.isLoading
+    var errorMessage = viewModel.errorMessage
+    val LoginState = viewModel.LoginState
+    val context = LocalContext.current
+    viewModel.email= email
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -81,28 +89,32 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = androi
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Input Fields
 
-        CustomTextField(label = "Email", value = email , onValueChange = {newemail -> email =
-            newemail})
+        CustomTextField(
+            label = "Email", value = email,
+            onValueChange = { newemail ->
+                email =
+                    newemail
+            },
+        )
         CustomTextField(
             label = "Password",
             value = password,
-            onValueChange = {newPass -> password = newPass},
+            onValueChange = { newPass -> password = newPass },
             keyboardType = KeyboardType.Password,
             isPassword = true
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Sign Up Button
-        if(isLoading){
+        if (isLoading) {
             Text(text = "Logging In...", color = Color.Gray)
-        }else {
+        } else {
             Button(
                 onClick = {
-                    val request = LoginRequest(email,password)
+                    val request = LoginRequest(email, password)
                     viewModel.loginUser(request)
+                    buttonClicked = true
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(Color.Blue)
@@ -124,21 +136,30 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = androi
                 color = Color.Gray
             )
         }
-        LoginState?.let {
-            Log.d("from screen", it.message)
-            if (it.message =="Sign-in successful") {
-                Text(text = "User ${it.message}", color = Color.Green)
-                Log.d("token", getToken())
-                navController.navigate("cam")
+        if (isLoading == false) {
+            if(LoginState!=null) {
+                LoginState?.let {
+                    Log.d("from screen", it.message)
+                    if (it.message == "Sign-in successful") {
+                        Text(text = "User ${it.message}", color = Color.Green)
+                        Log.d("token", it.token)
+                        navController.navigate("cam")
+                    } else {
+                        Log.d("registered error", "registered error")
+                        Text(text = "Error: ${it.message}", color = Color.Red)
+                    }
+                }
+            }else {
+                errorMessage?.let {
+                    Text(text = "Invalid Email or Password", color = Color.Red)
+                    Log.d("error", "error")
+                    if (buttonClicked) {
+                        Toast.makeText(context, "Invalid Email or Password", Toast.LENGTH_SHORT)
+                            .show()
+                        buttonClicked = false
+                    }
+                }
             }
-            else {
-                Log.d("registered error", "registered error")
-                Text(text = "Error: ${it.message}", color = Color.Red)
-            }
-        }
-        errorMessage?.let {
-            Text(text = "Invalid Email or Password", color = Color.Red)
-            Log.d("error","error")
         }
     }
 }

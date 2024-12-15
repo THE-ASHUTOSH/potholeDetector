@@ -40,7 +40,7 @@ import com.example.potholedetector.sampledata.SignUpRequest
 
 
 
-
+var signUpbuttonClicked : Boolean = false
 @Composable
 fun SignUpScreen(navController: NavController, viewModel: RegistrationViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
     var name by remember { mutableStateOf("") }
@@ -111,7 +111,8 @@ fun SignUpScreen(navController: NavController, viewModel: RegistrationViewModel 
             onClick = {
                 val request = SignUpRequest(name, email, password)
                 viewModel.registerUser(request)
-                      Log.d("Click","Click")},
+                      Log.d("Click","Click")
+                      signUpbuttonClicked = true},
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(Color.Blue)
         ) {
@@ -133,22 +134,33 @@ fun SignUpScreen(navController: NavController, viewModel: RegistrationViewModel 
 
 
 
-
-        registrationState?.let {
-            Log.d("from screen", it.message)
-            if (it.message =="User registered successfully") {
-                Log.d("registered", "registered")
-                Toast.makeText(context, "Registration Successful: ${it.message}", Toast.LENGTH_SHORT).show()
-                navController.navigate("login")
+        if(isLoading == false) {
+            if(registrationState!=null) {
+                registrationState?.let {
+                    Log.d("from screen", it.message)
+                    if (it.message == "User registered successfully") {
+                        Log.d("registered", "registered")
+                        Toast.makeText(
+                            context,
+                            "Registration Successful: ${it.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        navController.navigate("login")
+                    } else {
+                        Log.d("registered error", "registered error")
+                        Text(text = "Error: ${it.message}", color = Color.Red)
+                    }
+                }
             }
-            else {
-                Log.d("registered error", "registered error")
-                Text(text = "Error: ${it.message}", color = Color.Red)
+            else{
+                errorMessage?.let {
+                    if (signUpbuttonClicked) {
+                        Toast.makeText(context, "Invalid Input", Toast.LENGTH_SHORT).show()
+                        signUpbuttonClicked = false
+                    }
+                    Log.d("error", "error")
+                }
             }
-        }
-        errorMessage?.let {
-            Toast.makeText(context, "Error: $it", Toast.LENGTH_SHORT).show()
-            Log.d("error","error")
         }
     }
 }

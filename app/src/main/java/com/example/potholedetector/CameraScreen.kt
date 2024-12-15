@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.location.Geocoder
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -31,6 +32,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
@@ -57,18 +59,27 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
+import com.example.potholedetector.sampledata.LoginRequest
 import com.google.android.gms.location.LocationServices
 
 @Composable
-fun CameraScreen(navController: NavController) {
+fun CameraScreen(navController: NavController, viewModel1: UserHistoryModel = androidx.lifecycle
+    .viewmodel.compose.viewModel(), viewModel2: LoginViewModel = androidx.lifecycle.viewmodel
+        .compose.viewModel(), viewModel3 : AIViewModel = viewModel()) {
     val context = LocalContext.current
 
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var bitmapImage by remember { mutableStateOf<Bitmap?>(null) }
     val locationState = remember { mutableStateOf<String?>(null) }
     var locBol by remember { mutableStateOf(false) }
+
+    val isLoading = viewModel3.isLoading // Directly observe from ViewModel
+    val errorMessage = viewModel3.errorMessage
+    val uploadState = viewModel3.uploadState
 
     // Launcher for gallery
     val galleryLauncher = rememberLauncherForActivityResult(
@@ -103,7 +114,12 @@ fun CameraScreen(navController: NavController) {
             ) {
                 Spacer(Modifier.weight(0.5f))
 
-                IconButton(onClick = { /* Handle click */ },) {
+                IconButton(
+                    onClick = {
+                        viewModel1.getUserHistory()
+                        navController.navigate("history")
+                    },
+                ) {
                     Icon(
                         imageVector = Icons.Default.Info,
                         contentDescription = "Group",
@@ -142,7 +158,7 @@ fun CameraScreen(navController: NavController) {
                 Spacer(Modifier.weight(1f))
 
 
-                IconButton(onClick = { /* Handle click */ }) {
+                IconButton(onClick = {navController.navigate("profile") }) {
                     Icon(
                         imageVector = Icons.Default.AccountCircle,
                         contentDescription = "Assignment",
@@ -201,8 +217,40 @@ fun CameraScreen(navController: NavController) {
             Spacer(modifier = Modifier.size(30.dp))
             if(locBol && bitmapImage!=null) {
                 locationState.value?.let { placeName ->
-                    Text("LOCATION:  $placeName",
-                        modifier = Modifier.padding(30.dp))
+                    Text(
+                        "LOCATION:  $placeName",
+                        modifier = Modifier.padding(30.dp)
+                    )
+                }
+                if(isLoading){
+                    Text(text = "Analysing...", color = Color.Gray)
+                }else {
+                    Button(
+                        onClick = {
+                            viewModel3.uploadImage(context, bitmapImage!!)
+                        },
+                        colors = ButtonDefaults.buttonColors(Color(38, 191, 41))
+                    ) {
+                        Text(
+                            text = "Analyse",
+                            color = Color.White,
+                            style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                            modifier = Modifier.padding(top = 5.dp, bottom = 5.dp)
+                        )
+                    }
+                }
+                if (uploadState != null) {
+                    if(uploadState.predictions.isNotEmpty() && uploadState.inference_id!=null ){
+                        Text(text = "It is a Pothole",
+                            color = Color(38, 191, 41),
+                            modifier = Modifier.padding(20.dp)
+                            )
+                    }else{
+                        Text(text = "It is not a Pothole",
+                            color = Color.Red,
+                            modifier = Modifier.padding(20.dp)
+                            )
+                    }
                 }
             }
         }
