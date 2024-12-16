@@ -1,5 +1,11 @@
 Pothole Detection and Reporting System
 
+ML Model Link :
+https://github.com/akhulisumit/Pothole-detection-ML-Model
+
+UI Link :
+https://www.canva.com/design/DAGX-yV_znw/WCRpqGLzFSkLEU5M7iUMEg/edit?utm_content=DAGX-yV_znw&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
+
 Overview
 
 This project is a mobile application designed to detect potholes using a trained machine learning model. Users can capture images of suspected potholes, verify the presence of a pothole, tag the location, and report it directly on Twitter to raise public awareness and prompt quicker responses from authorities.
